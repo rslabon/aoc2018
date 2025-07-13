@@ -37,22 +37,22 @@ def part1():
 
 
 def part2():
-    not_overlaps = set()
+    not_overlapping_ids = set()
     occurrences = dict()
     for id, row, col, width, height in rectangles:
-        not_overlaps.add(id)
+        not_overlapping_ids.add(id)
         i = 0
         while i < height:
             j = 0
             while j < width:
-                o = occurrences.get((row + i, col + j), set()) | {id}
-                occurrences[(row + i, col + j)] = o
-                if len(o) > 1:
-                    not_overlaps -= o
+                ids = occurrences.get((row + i, col + j), set()) | {id}
+                occurrences[(row + i, col + j)] = ids
+                if len(ids) > 1:
+                    not_overlapping_ids -= ids
                 j += 1
             i += 1
 
-    print(not_overlaps)
+    print(not_overlapping_ids)
 
 
 part1()
