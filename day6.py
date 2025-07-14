@@ -87,6 +87,8 @@ def part2():
             total = 0
             for p in points:
                 total += manhattan_distance(p, (i, j))
+                if total >= 10_000:
+                    break
             if total < 10_000:
                 regions.add((i, j))
 
