@@ -1,4 +1,4 @@
-from collections import deque
+import time
 
 lines = """
 1, 1
@@ -24,27 +24,6 @@ for line in lines:
 
 def manhattan_distance(p1, p2):
     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
-
-
-def area(grid, p):
-    seen = set()
-    q = deque()
-    q.append(p)
-
-    while q:
-        x, y = q.popleft()
-        if (x, y) in seen:
-            continue
-        seen.add((x, y))
-        for dx, dy in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
-            new_x = x + dx
-            new_y = y + dy
-            if not (0 <= new_x <= max_x and 0 <= new_y <= max_y):
-                continue
-            if grid[new_x, new_y][1] == p:
-                q.append((new_x, new_y))
-
-    return len(seen)
 
 
 def part1():
@@ -74,10 +53,14 @@ def part1():
     for i in range(0, max_x + 1):  # right border
         finite_points -= {grid[(i, j)][1]}
 
-    max_area = float("-inf")
-    for p in finite_points:
-        max_area = max(max_area, area(grid, p))
-    print(max_area)
+    area = dict()
+    for i in range(0, max_x + 1):
+        for j in range(0, max_y + 1):
+            p = grid[(i, j)][1]
+            if p in finite_points:
+                area[p] = area.get(p, 0) + 1
+
+    print(max(area.values()))
 
 
 def part2():
@@ -95,5 +78,8 @@ def part2():
     print(len(regions))
 
 
+s = time.time()
 part1()
-part2()
+e = time.time()
+print(e - s)
+# part2()
