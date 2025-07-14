@@ -1,5 +1,3 @@
-import time
-
 lines = """
 1, 1
 1, 6
@@ -78,8 +76,5 @@ def part2():
     print(len(regions))
 
 
-s = time.time()
 part1()
-e = time.time()
-print(e - s)
-# part2()
+part2()
