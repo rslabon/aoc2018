@@ -37,6 +37,12 @@ class Worker:
     def is_available(self):
         return self.time == 0
 
+    def take_step(self):
+        self.time = 0
+        step = self.step
+        self.step = None
+        return step
+
     def give_step(self, step, time):
         self.step = step
         self.time = time
@@ -131,14 +137,11 @@ def traverse_with_workers(available, seen, workers, clock):
     tick(workers)
     clock += 1
     for finished_worker in get_finished_workers(workers):
-        step = finished_worker.step
+        step = finished_worker.take_step()
         seen.add(step)
         for next_step in step.next:
             if seen.issuperset(next_step.required):
                 available = set(available) | {next_step}
-
-        finished_worker.time = 0
-        finished_worker.step = None
 
     available = sorted(available, key=lambda n: n.name)
     if not available and has_busy_workers(workers):
