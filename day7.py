@@ -20,9 +20,9 @@ class Step:
         self.required = set()
         self.next = set()
 
-    def add_step(self, other_node):
-        self.next.add(other_node)
-        other_node.required.add(self)
+    def add_next_step(self, next_step):
+        self.next.add(next_step)
+        next_step.required.add(self)
 
     def __repr__(self):
         return f'{self.name}'
@@ -88,7 +88,7 @@ for line in lines:
     second_node = nodes.get(second, Step(second))
     nodes[first] = first_node
     nodes[second] = second_node
-    first_node.add_step(second_node)
+    first_node.add_next_step(second_node)
 
 
 def traverse(available, path, seen):
