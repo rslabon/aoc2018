@@ -28,6 +28,52 @@ class Step:
         return f'{self.name}'
 
 
+class Worker:
+    def __init__(self, name):
+        self.name = name
+        self.time = 0
+        self.step = None
+
+    def is_available(self):
+        return self.time == 0
+
+    def give_step(self, step, time):
+        self.step = step
+        self.time = time
+
+    def __repr__(self):
+        return f'{self.name} - {self.time}s - {self.step}'
+
+
+times = {
+    "A": 1,
+    "B": 2,
+    "C": 3,
+    "D": 4,
+    "E": 5,
+    "F": 6,
+    "G": 7,
+    "H": 8,
+    "I": 9,
+    "J": 10,
+    "K": 11,
+    "L": 12,
+    "M": 13,
+    "N": 14,
+    "O": 15,
+    "P": 16,
+    "Q": 17,
+    "R": 18,
+    "S": 19,
+    "T": 20,
+    "U": 21,
+    "V": 22,
+    "W": 23,
+    "X": 24,
+    "Y": 25,
+    "Z": 26,
+}
+
 nodes = dict()
 
 for line in lines:
@@ -57,6 +103,68 @@ def traverse(available, path, seen):
     traverse(available, path, seen)
 
 
+clock = -1
+
+
+def tick(workers):
+    global clock
+    clock += 1
+    for worker in workers:
+        if worker.time > 0:
+            worker.time -= 1
+
+
+def get_free_worker(workers):
+    for worker in workers:
+        if worker.is_available():
+            return worker
+    return None
+
+
+def get_finished_workers(workers):
+    return [worker for worker in workers if worker.time == 0 and worker.step]
+
+
+def has_busy_workers(workers):
+    return len([worker for worker in workers if worker.step]) > 0
+
+
+def traverse_with_workers(available, path, seen, workers):
+    if not available and not has_busy_workers(workers):
+        return
+
+    tick(workers)
+    for finished_worker in get_finished_workers(workers):
+        step = finished_worker.step
+        seen.add(step)
+        path.append(step)
+        for next_step in step.next:
+            if seen.issuperset(next_step.required):
+                available = set(available) | {next_step}
+
+        finished_worker.time = 0
+        finished_worker.step = None
+
+    available = sorted(available, key=lambda n: n.name)
+    if not available and has_busy_workers(workers):
+        traverse_with_workers(available, path, seen, workers)
+
+    while available:
+        step = available[0]
+        worker = get_free_worker(workers)
+        if not worker:
+            traverse_with_workers(available, path, seen, workers)
+            return
+
+        available.pop(0)
+        if step in seen:
+            continue
+
+        worker.give_step(step, times[step.name] + 60)
+
+    traverse_with_workers(available, path, seen, workers)
+
+
 def part1():
     sources = list(sorted(filter(lambda n: len(n.required) == 0, nodes.values()), key=lambda n: n.name))
     path = []
@@ -65,4 +173,14 @@ def part1():
     print("".join([n.name for n in path]))
 
 
+def part2():
+    sources = list(sorted(filter(lambda n: len(n.required) == 0, nodes.values()), key=lambda n: n.name))
+    path = []
+    seen = set()
+    workers = [Worker("1"), Worker("2"), Worker("3"), Worker("4"), Worker("5")]
+    traverse_with_workers(sources, path, seen, workers)
+    print(clock)
+
+
 part1()
+part2()
