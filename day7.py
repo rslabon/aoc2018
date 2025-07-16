@@ -103,12 +103,7 @@ def traverse(available, path, seen):
     traverse(available, path, seen)
 
 
-clock = -1
-
-
 def tick(workers):
-    global clock
-    clock += 1
     for worker in workers:
         if worker.time > 0:
             worker.time -= 1
@@ -129,15 +124,15 @@ def has_busy_workers(workers):
     return len([worker for worker in workers if worker.step]) > 0
 
 
-def traverse_with_workers(available, path, seen, workers):
+def traverse_with_workers(available, seen, workers, clock):
     if not available and not has_busy_workers(workers):
-        return
+        return clock
 
     tick(workers)
+    clock += 1
     for finished_worker in get_finished_workers(workers):
         step = finished_worker.step
         seen.add(step)
-        path.append(step)
         for next_step in step.next:
             if seen.issuperset(next_step.required):
                 available = set(available) | {next_step}
@@ -147,14 +142,13 @@ def traverse_with_workers(available, path, seen, workers):
 
     available = sorted(available, key=lambda n: n.name)
     if not available and has_busy_workers(workers):
-        traverse_with_workers(available, path, seen, workers)
+        return traverse_with_workers(available, seen, workers, clock)
 
     while available:
         step = available[0]
         worker = get_free_worker(workers)
         if not worker:
-            traverse_with_workers(available, path, seen, workers)
-            return
+            return traverse_with_workers(available, seen, workers, clock)
 
         available.pop(0)
         if step in seen:
@@ -162,7 +156,7 @@ def traverse_with_workers(available, path, seen, workers):
 
         worker.give_step(step, times[step.name] + 60)
 
-    traverse_with_workers(available, path, seen, workers)
+    return traverse_with_workers(available, seen, workers, clock)
 
 
 def part1():
@@ -175,10 +169,9 @@ def part1():
 
 def part2():
     sources = list(sorted(filter(lambda n: len(n.required) == 0, nodes.values()), key=lambda n: n.name))
-    path = []
     seen = set()
     workers = [Worker("1"), Worker("2"), Worker("3"), Worker("4"), Worker("5")]
-    traverse_with_workers(sources, path, seen, workers)
+    clock = traverse_with_workers(sources, seen, workers, -1)
     print(clock)
 
 
