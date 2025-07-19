@@ -55,14 +55,14 @@ def move(point, seconds):
 def find_seconds_with_min_x_width():
     moved_points = set(points)
     min_seconds = None
-    min_distance = float("inf")
+    min_x_width = float("inf")
     for second in range(100_000):
         moved_points = set(map(lambda p: move(p, 1), moved_points))
         xs = list(map(lambda p: p[0], moved_points))
         min_x = min(xs)
         max_x = max(xs)
-        if max_x - min_x < min_distance:
-            min_distance = max_x - min_x
+        if max_x - min_x < min_x_width:
+            min_x_width = max_x - min_x
             min_seconds = second
     return min_seconds + 1
 
