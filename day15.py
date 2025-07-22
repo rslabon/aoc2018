@@ -26,36 +26,61 @@ def in_range(current, enemies):
     return False
 
 
-def shortest_path(current, heros, enemies, space):
+def destinations(enemies):
+    result = set()
+    for e in enemies:
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            next = (e[0] + dx, e[1] + dy)
+            result.add(next)
+
+    return result
+
+
+def shortest_paths(unit, heros, enemies, space):
+    free_space = space - heros - enemies
+    if not destinations(enemies) & free_space:
+        return []
+
     q = []
     heapq.heapify(q)
-    heapq.heappush(q, (0, current, set(), []))
-    free_space = space - heros - enemies
-
+    heapq.heappush(q, (0, unit, set(), []))
     paths = []
 
     while q:
-        _, c, seen, path = heapq.heappop(q)
-        if c in seen:
+        _, current, seen, path = heapq.heappop(q)
+        if len(paths) > 0 and path and len(path) > len(paths[0]):
+            break
+        if current in seen:
             continue
 
-        seen.add(c)
-        path.append(c)
-        if in_range(c, enemies):
-            if len(paths) > 0 and path and len(path[1:]) > len(paths[0]):
-                break
-            paths.append(path[1:])
+        if current != unit:
+            path.append(current)
+
+        seen.add(current)
+        if in_range(current, enemies):
+            if path:
+                paths.append(path)
 
         for dx, dy in [(-1, 0), (0, 1), (0, -1), (1, 0)]:
-            next = (c[0] + dx, c[1] + dy)
+            next = (current[0] + dx, current[1] + dy)
             if not next in free_space:
                 continue
             if next in seen:
                 continue
             heapq.heappush(q, (len(path), next, set(seen), path[:]))
 
-    print(paths)
     return paths
+
+
+def step_in_reading_order(paths):
+    if not paths:
+        return None
+
+    paths = list(paths)
+    last_step = min(map(lambda p: p[-1][0] * 10_000 + p[-1][1], paths))
+    paths_with_last_step = list(filter(lambda p: p[-1][0] * 10_000 + p[-1][1] == last_step, paths))
+    first_step = min(map(lambda p: p[0][0] * 10_000 + p[0][1], paths_with_last_step))
+    return first_step // 10_000, first_step % 10_000
 
 
 elfs = set()
@@ -89,19 +114,34 @@ def print_game(elfs, goblins, space):
 
 
 print_game(elfs, goblins, space)
-for _ in range(3):
-    all = elfs | goblins
-    all = sort_by_reading_order(all)
-    for current in all:
+for _ in range(5):
+    units_in_range = set()
+    for elf in elfs:
+        if in_range(elf, goblins):
+            units_in_range.add(elf)
+    for goblin in goblins:
+        if in_range(goblin, elfs):
+            units_in_range.add(goblin)
+
+    units_to_move = elfs | goblins
+    units_to_move = units_to_move - units_in_range
+    units_to_move = sort_by_reading_order(units_to_move)
+    for current in units_to_move:
         if current in elfs:
-            path = shortest_path(current, elfs, goblins, space)
-            if path:
+            paths = shortest_paths(current, elfs, goblins, space)
+            step = step_in_reading_order(paths)
+            if step:
                 elfs.remove(current)
-                elfs.add(path[0])
+                elfs.add(step)
         else:
-            path = shortest_path(current, goblins, elfs, space)
-            if path:
+            paths = shortest_paths(current, goblins, elfs, space)
+            step = step_in_reading_order(paths)
+            if step:
                 goblins.remove(current)
-                goblins.add(path[0])
+                goblins.add(step)
+
+    units_in_range = sort_by_reading_order(units_in_range)
+    for current in units_in_range:
+        print(current)
 
     print_game(elfs, goblins, space)
