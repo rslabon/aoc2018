@@ -18,14 +18,6 @@ def sort_by_reading_order(positions):
     return sorted_positions
 
 
-def in_range(current, enemies):
-    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-        next = (current[0] + dx, current[1] + dy)
-        if next in enemies:
-            return True
-    return False
-
-
 def destinations(enemies):
     result = set()
     for e in enemies:
@@ -34,6 +26,10 @@ def destinations(enemies):
             result.add(next)
 
     return result
+
+
+def in_range(current, enemies):
+    return current in destinations(enemies)
 
 
 def shortest_paths(unit, heros, enemies, space):
