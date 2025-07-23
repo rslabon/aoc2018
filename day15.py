@@ -12,53 +12,85 @@ lines = """
 #########
 """.strip().splitlines()
 
+lines = """
+#######
+#.G...#
+#...EG#
+#.#.#G#
+#..G#E#
+#.....#   
+####### 
+""".strip().splitlines()
 
-def sort_by_reading_order(positions):
-    sorted_positions = sorted(positions, key=lambda p: (p[0], p[1]))
+
+class Unit:
+    def __init__(self, x, y, elf, hp, attack):
+        self.x = x
+        self.y = y
+        self.elf = elf
+        self.hp = hp
+        self.attack = attack
+
+    def is_alive(self):
+        return self.hp > 0
+
+    def __repr__(self):
+        return f"{"Elf" if self.elf else "Goblin"} [{self.x},{self.y}] - {self.hp}"
+
+
+def position_of(units):
+    return set(map(lambda u: (u.x, u.y), units))
+
+
+def sort_by_reading_order(units):
+    sorted_positions = sorted(units, key=lambda u: (u.x, u.y))
     return sorted_positions
 
 
-def destinations(enemies):
+def destinations(positions):
     result = set()
-    for e in enemies:
+    for p in positions:
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            next = (e[0] + dx, e[1] + dy)
+            next = (p[0] + dx, p[1] + dy)
             result.add(next)
 
     return result
 
 
-def in_range(current, enemies):
-    return current in destinations(enemies)
+def in_range(position, enemy_positions):
+    return (position[0], position[1]) in destinations(enemy_positions)
 
 
 def shortest_paths(unit, heros, enemies, space):
-    free_space = space - heros - enemies
-    if not destinations(enemies) & free_space:
+    starting_position = (unit.x, unit.y)
+    heros_positions = position_of(heros)
+    enemy_positions = position_of(enemies)
+    free_space = space - heros_positions - enemy_positions
+    if not destinations(enemy_positions) & free_space:
         return []
 
     q = []
     heapq.heapify(q)
-    heapq.heappush(q, (0, unit, set(), []))
+    heapq.heappush(q, (0, starting_position, set(), []))
     paths = []
 
     while q:
-        _, current, seen, path = heapq.heappop(q)
+        _, current_position, seen, path = heapq.heappop(q)
         if len(paths) > 0 and path and len(path) > len(paths[0]):
             break
-        if current in seen:
+        if current_position in seen:
             continue
 
-        if current != unit:
-            path.append(current)
+        if current_position != starting_position:
+            path.append(current_position)
 
-        seen.add(current)
-        if in_range(current, enemies):
+        seen.add(current_position)
+        if in_range(current_position, enemy_positions):
             if path:
                 paths.append(path)
 
         for dx, dy in [(-1, 0), (0, 1), (0, -1), (1, 0)]:
-            next = (current[0] + dx, current[1] + dy)
+            next = (current_position[0] + dx, current_position[1] + dy)
             if not next in free_space:
                 continue
             if next in seen:
@@ -87,14 +119,16 @@ for row, line in enumerate(lines):
         if c == '.':
             space.add((row, col))
         elif c == 'E':
-            elfs.add((row, col))
+            elfs.add(Unit(row, col, True, 200, 3))
             space.add((row, col))
         elif c == 'G':
-            goblins.add((row, col))
+            goblins.add(Unit(row, col, False, 200, 3))
             space.add((row, col))
 
 
 def print_game(elfs, goblins, space):
+    elfs = position_of(elfs)
+    goblins = position_of(goblins)
     for row in range(len(lines)):
         for col in range(len(lines[0])):
             if (row, col) in elfs:
@@ -109,15 +143,23 @@ def print_game(elfs, goblins, space):
     print()
 
 
+def get_with_fewest_hit_points(units):
+    min_hit_point = min(units, key=lambda u: u.hp)
+    units = list(filter(lambda u: u.hp == min_hit_point.hp, units))
+    return sorted(units, key=lambda u: (u.hp, u.x, u.y))
+
+
 print_game(elfs, goblins, space)
-for _ in range(5):
+for _ in range(47):
+    elf = set(filter(lambda u: u.is_alive(), elfs))
+    goblins = set(filter(lambda u: u.is_alive(), goblins))
+
     units_in_range = set()
     for elf in elfs:
-        if in_range(elf, goblins):
-            units_in_range.add(elf)
-    for goblin in goblins:
-        if in_range(goblin, elfs):
-            units_in_range.add(goblin)
+        for goblin in goblins:
+            if in_range((elf.x, elf.y), {(goblin.x, goblin.y)}):
+                units_in_range.add(elf)
+                units_in_range.add(goblin)
 
     units_to_move = elfs | goblins
     units_to_move = units_to_move - units_in_range
@@ -127,17 +169,36 @@ for _ in range(5):
             paths = shortest_paths(current, elfs, goblins, space)
             step = step_in_reading_order(paths)
             if step:
-                elfs.remove(current)
-                elfs.add(step)
+                current.x = step[0]
+                current.y = step[1]
         else:
             paths = shortest_paths(current, goblins, elfs, space)
             step = step_in_reading_order(paths)
             if step:
-                goblins.remove(current)
-                goblins.add(step)
+                current.x = step[0]
+                current.y = step[1]
 
-    units_in_range = sort_by_reading_order(units_in_range)
+    enemies = dict()
+    for elf in elfs:
+        for goblin in goblins:
+            if in_range((elf.x, elf.y), {(goblin.x, goblin.y)}):
+                e = enemies.get(elf, set())
+                e.add(goblin)
+                enemies[elf] = e
+                e = enemies.get(goblin, set())
+                e.add(elf)
+                enemies[goblin] = e
+    units_in_range = sort_by_reading_order(enemies.keys())
     for current in units_in_range:
-        print(current)
+        if not current.is_alive():
+            continue
 
+        for enemy in get_with_fewest_hit_points(enemies.get(current)):
+            if not enemy.is_alive():
+                continue
+            enemy.hp -= current.attack
+            print(current, enemy)
+
+    elf = set(filter(lambda u: u.is_alive(), elfs))
+    goblins = set(filter(lambda u: u.is_alive(), goblins))
     print_game(elfs, goblins, space)
