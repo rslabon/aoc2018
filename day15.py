@@ -179,7 +179,7 @@ def get_surrounded_by(current, enemies):
 
 
 def play_game(elfs, goblins, space):
-    number_elfs_at_start = len(elfs)
+    single_elf_death = False
     round = 0
     while True:
         elfs = set(filter(lambda u: u.is_alive(), elfs))
@@ -194,8 +194,7 @@ def play_game(elfs, goblins, space):
             enemies = set(filter(lambda u: current.elf != u.elf, units))
             if len(enemies) == 0:
                 outcome = round * (sum(map(lambda u: u.hp, heros)) + sum(map(lambda u: u.hp, enemies)))
-                live_elfs = set(filter(lambda u: u.is_alive(), elfs))
-                return outcome, len(live_elfs) == number_elfs_at_start
+                return outcome, not single_elf_death
 
             if not get_surrounded_by(current, enemies):
                 step = next_step(current, heros, enemies, space)
@@ -206,6 +205,8 @@ def play_game(elfs, goblins, space):
             target = get_alive_with_fewest_hit_points(targets)
             if target:
                 target.hp -= current.attack
+                if target.elf and not target.is_alive():
+                    single_elf_death = True
 
         round += 1
 
