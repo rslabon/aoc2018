@@ -65,7 +65,7 @@ lines5 = """
 #########
 """.strip().splitlines()
 
-with open("./resources/day14.txt") as f:
+with open("resources/day15.txt") as f:
     lines = f.read().strip().splitlines()
 
 
@@ -219,6 +219,8 @@ def play_game(elfs, goblins, space):
     # print_game(elfs, goblins, space)
     round = 0
     while True:
+        elfs = set(filter(lambda u: u.is_alive(), elfs))
+        goblins = set(filter(lambda u: u.is_alive(), goblins))
         units = elfs | goblins
         units = sort_by_reading_order(units)
         for current in units:
@@ -244,17 +246,11 @@ def play_game(elfs, goblins, space):
                 # print("attack", current, "->", target, "hp:", target.hp - 3)
                 target.hp -= current.attack
 
-        elfs = set(filter(lambda u: u.is_alive(), elfs))
-        goblins = set(filter(lambda u: u.is_alive(), goblins))
-
         # for u in sort_by_reading_order(elfs | goblins):
         #     print(round, u)
         # print_game(elfs, goblins, space)
 
         round += 1
-        if not elfs or not goblins:
-            outcome = round * (sum(map(lambda u: u.hp, elfs)) + sum(map(lambda u: u.hp, goblins)))
-            return outcome
 
 
 def find_outcome(lines):
@@ -267,3 +263,5 @@ assert find_outcome(lines2) == 36334
 assert find_outcome(lines3) == 27755
 assert find_outcome(lines4) == 28944
 assert find_outcome(lines5) == 18740
+
+# find_outcome(lines)
