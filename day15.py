@@ -139,17 +139,6 @@ def next_step(unit, heros, enemies, space):
     return None
 
 
-def step_in_reading_order(paths):
-    if not paths:
-        return None
-
-    paths = list(paths)
-    last_step = min(map(lambda p: p[-1][0] * 10_000 + p[-1][1], paths))
-    paths_with_last_step = list(filter(lambda p: p[-1][0] * 10_000 + p[-1][1] == last_step, paths))
-    first_step = min(map(lambda p: p[0][0] * 10_000 + p[0][1], paths_with_last_step))
-    return first_step // 10_000, first_step % 10_000
-
-
 def parse(lines):
     elfs = set()
     goblins = set()
