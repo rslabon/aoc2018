@@ -128,7 +128,7 @@ def next_step(unit, heros, enemies, space):
                     path.append(current)
             return path[-2]
 
-        for next in sorted([(x + 1, y + 0), (x + 0, y + 1), (x + 0, y - 1), (x - 1, y + 0)]):
+        for next in [(x + 1, y + 0), (x + 0, y + 1), (x + 0, y - 1), (x - 1, y + 0)]:
             if next not in free_space:
                 continue
             if next not in cost or cost[(x, y)] + 1 < cost[next]:
@@ -190,6 +190,7 @@ def get_surrounded_by(current, enemies):
 
 
 def play_game(elfs, goblins, space):
+    number_elfs_at_start = len(elfs)
     round = 0
     while True:
         elfs = set(filter(lambda u: u.is_alive(), elfs))
@@ -204,7 +205,8 @@ def play_game(elfs, goblins, space):
             enemies = set(filter(lambda u: current.elf != u.elf, units))
             if len(enemies) == 0:
                 outcome = round * (sum(map(lambda u: u.hp, heros)) + sum(map(lambda u: u.hp, enemies)))
-                return outcome
+                live_elfs = set(filter(lambda u: u.is_alive(), elfs))
+                return outcome, len(live_elfs) == number_elfs_at_start
 
             if not get_surrounded_by(current, enemies):
                 step = next_step(current, heros, enemies, space)
@@ -224,15 +226,30 @@ def find_outcome(lines):
     return play_game(elfs, goblins, space)
 
 
-assert find_outcome(lines1) == 27730
-assert find_outcome(lines2) == 36334
-assert find_outcome(lines3) == 27755
-assert find_outcome(lines4) == 28944
-assert find_outcome(lines5) == 18740
+assert find_outcome(lines1)[0] == 27730
+assert find_outcome(lines2)[0] == 36334
+assert find_outcome(lines3)[0] == 27755
+assert find_outcome(lines4)[0] == 28944
+assert find_outcome(lines5)[0] == 18740
 
 
 def part1():
-    print(find_outcome(lines))
+    print(find_outcome(lines)[0])
+
+
+def part2():
+    attack = 4
+    while True:
+        elfs, goblins, space = parse(lines)
+        for elf in elfs:
+            elf.attack = attack
+
+        outcome, every_elf_survive = play_game(elfs, goblins, space)
+        if every_elf_survive:
+            print(outcome)
+            break
+        attack += 1
 
 
 part1()
+part2()
