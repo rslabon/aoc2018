@@ -103,49 +103,40 @@ def destinations(positions):
     return result
 
 
-def in_range(position, enemy_positions):
-    return (position[0], position[1]) in destinations(enemy_positions)
-
-
-def shortest_paths(unit, heros, enemies, space):
-    starting_position = (unit.x, unit.y)
+def next_step(unit, heros, enemies, space):
+    start = (unit.x, unit.y)
     heros_positions = position_of(heros)
     enemy_positions = position_of(enemies)
+    targets = destinations(enemy_positions)
     free_space = space - heros_positions - enemy_positions
-    if not destinations(enemy_positions) & free_space:
-        return []
-
     q = []
     heapq.heapify(q)
-    heapq.heappush(q, (0, starting_position, set(), []))
-    paths = []
+    heapq.heappush(q, (0, start))
+    prev = dict()
+    cost = dict()
+    prev[start] = None
+    cost[start] = 0
 
     while q:
-        _, current_position, seen, path = heapq.heappop(q)
-        if current_position in seen:
-            continue
+        _, (x, y) = heapq.heappop(q)
+        if (x, y) in targets:
+            current = (x, y)
+            path = [current]
+            while current:
+                current = prev[current]
+                if current:
+                    path.append(current)
+            return path[-2]
 
-        if current_position != starting_position:
-            path.append(current_position)
-
-        seen.add(current_position)
-
-        if len(paths) > 0 and path and len(path) > len(paths[0]):
-            return paths
-
-        if in_range(current_position, enemy_positions):
-            if path:
-                paths.append(path)
-
-        for dx, dy in [(-1, 0), (0, 1), (0, -1), (1, 0)]:
-            next = (current_position[0] + dx, current_position[1] + dy)
-            if not next in free_space:
+        for next in sorted([(x + 1, y + 0), (x + 0, y + 1), (x + 0, y - 1), (x - 1, y + 0)]):
+            if next not in free_space:
                 continue
-            if next in seen:
-                continue
-            heapq.heappush(q, (len(path), next, set(seen), path[:]))
+            if next not in cost or cost[(x, y)] + 1 < cost[next]:
+                cost[next] = cost[(x, y)] + 1
+                prev[next] = (x, y)
+                heapq.heappush(q, (cost[next], next))
 
-    return paths
+    return None
 
 
 def step_in_reading_order(paths):
@@ -177,23 +168,6 @@ def parse(lines):
     return elfs, goblins, space
 
 
-def print_game(elfs, goblins, space):
-    elfs = position_of(elfs)
-    goblins = position_of(goblins)
-    for row in range(len(lines)):
-        for col in range(len(lines[0])):
-            if (row, col) in elfs:
-                print('E', end='')
-            elif (row, col) in goblins:
-                print('G', end='')
-            elif (row, col) in space:
-                print('.', end='')
-            else:
-                print('#', end='')
-        print()
-    print()
-
-
 def get_alive_with_fewest_hit_points(units):
     live_units = list(filter(lambda u: u.is_alive(), units))
     if not live_units:
@@ -216,7 +190,6 @@ def get_surrounded_by(current, enemies):
 
 
 def play_game(elfs, goblins, space):
-    # print_game(elfs, goblins, space)
     round = 0
     while True:
         elfs = set(filter(lambda u: u.is_alive(), elfs))
@@ -234,21 +207,14 @@ def play_game(elfs, goblins, space):
                 return outcome
 
             if not get_surrounded_by(current, enemies):
-                paths = shortest_paths(current, heros, enemies, space)
-                step = step_in_reading_order(paths)
+                step = next_step(current, heros, enemies, space)
                 if step:
-                    # print("move", current, "->", step)
                     current.x = step[0]
                     current.y = step[1]
             targets = get_surrounded_by(current, enemies)
             target = get_alive_with_fewest_hit_points(targets)
             if target:
-                # print("attack", current, "->", target, "hp:", target.hp - 3)
                 target.hp -= current.attack
-
-        # for u in sort_by_reading_order(elfs | goblins):
-        #     print(round, u)
-        # print_game(elfs, goblins, space)
 
         round += 1
 
@@ -264,4 +230,9 @@ assert find_outcome(lines3) == 27755
 assert find_outcome(lines4) == 28944
 assert find_outcome(lines5) == 18740
 
-# find_outcome(lines)
+
+def part1():
+    print(find_outcome(lines))
+
+
+part1()
