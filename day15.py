@@ -12,18 +12,18 @@ lines = """
 #########
 """.strip().splitlines()
 
-lines = """
+lines1 = """
 #######
 #.G...#
 #...EG#
 #.#.#G#
 #..G#E#
-#.....#   
-####### 
+#.....#
+#######
 """.strip().splitlines()
 
 # zle
-lines = """
+lines2 = """
 #######
 #G..#E#
 #E#E.E#
@@ -33,7 +33,7 @@ lines = """
 #######
 """.strip().splitlines()
 
-lines = """
+lines3 = """
 #######
 #E.G#.#
 #.#G..#
@@ -42,6 +42,31 @@ lines = """
 #...E.#
 #######
 """.strip().splitlines()
+
+lines4 = """
+#######
+#.E...#
+#.#..G#
+#.###.#
+#E#G#G#
+#...#G#
+#######
+""".strip().splitlines()
+
+lines5 = """
+#########
+#G......#
+#.E.#...#
+#..##..G#
+#...##..#
+#...#...#
+#.G...G.#
+#.....G.#
+#########
+""".strip().splitlines()
+
+with open("./resources/day14.txt") as f:
+    lines = f.read().strip().splitlines()
 
 
 class Unit:
@@ -178,80 +203,67 @@ def get_alive_with_fewest_hit_points(units):
     return sort_by_reading_order(min_hp_live_units)[0]
 
 
+def get_surrounded_by(current, enemies):
+    x = current.x
+    y = current.y
+    enemy_positions = dict(map(lambda e: ((e.x, e.y), e), enemies))
+    current_enemies = []
+    for dx, dy in [(-1, 0), (0, 1), (0, -1), (1, 0)]:
+        if (x + dx, y + dy) in enemy_positions:
+            current_enemies.append(enemy_positions.get((x + dx, y + dy)))
+
+    return current_enemies
+
+
 def play_game(elfs, goblins, space):
-    print_game(elfs, goblins, space)
+    # print_game(elfs, goblins, space)
     round = 0
     while True:
-        elfs = set(filter(lambda u: u.is_alive(), elfs))
-        goblins = set(filter(lambda u: u.is_alive(), goblins))
-        if not elfs or not goblins:
-            outcome = round * (sum(map(lambda u: u.hp, elfs)) + sum(map(lambda u: u.hp, goblins)))
-            return outcome
-
-        units_in_range = set()
-        for elf in elfs:
-            for goblin in goblins:
-                if in_range((elf.x, elf.y), {(goblin.x, goblin.y)}):
-                    units_in_range.add(elf)
-                    units_in_range.add(goblin)
-
-        units_to_move = elfs | goblins
-        units_to_move = units_to_move - units_in_range
-        units_to_move = sort_by_reading_order(units_to_move)
-        print("units to move:", units_to_move)
-        for current in units_to_move:
-            if current in elfs:
-                paths = shortest_paths(current, elfs, goblins, space)
-                step = step_in_reading_order(paths)
-                if step:
-                    print("move", current, "->", step)
-                    current.x = step[0]
-                    current.y = step[1]
-            else:
-                paths = shortest_paths(current, goblins, elfs, space)
-                step = step_in_reading_order(paths)
-                if step:
-                    print("move", current, "->", step)
-                    current.x = step[0]
-                    current.y = step[1]
-
-        enemies = dict()
-        for elf in elfs:
-            for goblin in goblins:
-                if in_range((elf.x, elf.y), {(goblin.x, goblin.y)}):
-                    e = enemies.get(elf, set())
-                    e.add(goblin)
-                    enemies[elf] = e
-                    e = enemies.get(goblin, set())
-                    e.add(elf)
-                    enemies[goblin] = e
-        units_in_range = sort_by_reading_order(enemies.keys())
-        for current in units_in_range:
+        units = elfs | goblins
+        units = sort_by_reading_order(units)
+        for current in units:
             if not current.is_alive():
                 continue
+            units = set(filter(lambda u: u.is_alive(), units))
+            heros = set(filter(lambda u: current.elf == u.elf, units))
+            enemies = set(filter(lambda u: current.elf != u.elf, units))
+            if len(enemies) == 0:
+                outcome = round * (sum(map(lambda u: u.hp, heros)) + sum(map(lambda u: u.hp, enemies)))
+                return outcome
 
-            enemy = get_alive_with_fewest_hit_points(enemies.get(current))
-            if enemy:
-                print("attack", current, "->", enemy, "hp:", enemy.hp - 3)
-                enemy.hp -= current.attack
+            if not get_surrounded_by(current, enemies):
+                paths = shortest_paths(current, heros, enemies, space)
+                step = step_in_reading_order(paths)
+                if step:
+                    # print("move", current, "->", step)
+                    current.x = step[0]
+                    current.y = step[1]
+            targets = get_surrounded_by(current, enemies)
+            target = get_alive_with_fewest_hit_points(targets)
+            if target:
+                # print("attack", current, "->", target, "hp:", target.hp - 3)
+                target.hp -= current.attack
 
         elfs = set(filter(lambda u: u.is_alive(), elfs))
         goblins = set(filter(lambda u: u.is_alive(), goblins))
 
-        round += 1
-        for u in sort_by_reading_order(elfs | goblins):
-            print(round, u)
-        print_game(elfs, goblins, space)
+        # for u in sort_by_reading_order(elfs | goblins):
+        #     print(round, u)
+        # print_game(elfs, goblins, space)
 
+        round += 1
         if not elfs or not goblins:
             outcome = round * (sum(map(lambda u: u.hp, elfs)) + sum(map(lambda u: u.hp, goblins)))
             return outcome
 
 
-def part1():
+def find_outcome(lines):
     elfs, goblins, space = parse(lines)
-    outcome = play_game(elfs, goblins, space)
-    print(outcome)
+    return play_game(elfs, goblins, space)
 
 
-part1()
+assert find_outcome(lines1) == 27730
+assert find_outcome(lines2) == 36334
+assert find_outcome(lines3) == 27755
+assert find_outcome(lines4) == 28944
+assert find_outcome(lines5) == 18740
