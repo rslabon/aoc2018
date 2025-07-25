@@ -1,5 +1,4 @@
 from collections import deque
-from enum import Enum
 
 lines = """
 x=495, y=2..7
@@ -13,7 +12,7 @@ y=13, x=498..504
 """.strip().splitlines()
 
 # lines = """
-# x=480, y=2..10
+# x=480, y=4..10
 # x=520, y=2..10
 # y=10, x=480..520
 # x=495, y=5..7
@@ -21,62 +20,8 @@ y=13, x=498..504
 # y=7, x=495..505
 # """.strip().splitlines()
 
-
 with open("./resources/day17.txt") as f:
     lines = f.read().strip().splitlines()
-
-
-class Direction(Enum):
-    LEFT = 1
-    RIGHT = 2
-    DOWN = 3
-
-
-def can_move(grid, seen, x, y):
-    return (x, y) not in grid and (x, y) not in seen
-
-
-class WaterDrop:
-    def __init__(self, x, y, direction):
-        self.x = x
-        self.y = y
-        self.direction = direction
-
-    def move(self, grid, seen):
-        if self.direction == Direction.DOWN:
-            if can_move(grid, seen, self.x, self.y + 1):
-                return [WaterDrop(self.x, self.y + 1, Direction.DOWN)]
-            else:
-                r = []
-                if can_move(grid, seen, self.x - 1, self.y):
-                    r.append(WaterDrop(self.x - 1, self.y, Direction.LEFT))
-                if can_move(grid, seen, self.x + 1, self.y):
-                    r.append(WaterDrop(self.x + 1, self.y, Direction.RIGHT))
-                if len(r) == 0:
-                    grid[(self.x, self.y)] = "@"
-
-                return r
-        elif self.direction == Direction.LEFT:
-            if can_move(grid, seen, self.x, self.y + 1):
-                return [WaterDrop(self.x, self.y + 1, Direction.DOWN)]
-            elif can_move(grid, seen, self.x - 1, self.y):
-                return [WaterDrop(self.x - 1, self.y, Direction.LEFT)]
-            else:
-                grid[(self.x, self.y)] = "@"
-
-        elif self.direction == Direction.RIGHT:
-            if can_move(grid, seen, self.x, self.y + 1):
-                return [WaterDrop(self.x, self.y + 1, Direction.DOWN)]
-            elif can_move(grid, seen, self.x + 1, self.y):
-                return [WaterDrop(self.x + 1, self.y, Direction.RIGHT)]
-            else:
-                grid[(self.x, self.y)] = "@"
-
-        return []
-
-    def __repr__(self):
-        return f"WaterDrop({self.x}, {self.y}, {self.direction})"
-
 
 scans = []
 water_source = (500, 0)
@@ -120,8 +65,8 @@ for scan in scans:
 
 
 def print_scans(grid, drops):
-    for y in range(min_y - y_margin, max_y + 1 + y_margin):
-        for x in range(min_x - x_margin, max_x + 1 + x_margin):
+    for y in range(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
             if (x, y) == water_source:
                 print("+", end="")
             elif (x, y) in grid:
@@ -133,31 +78,77 @@ def print_scans(grid, drops):
         print()
 
 
-# print_scans(grid)
+def can_move(grid, x, y):
+    return (x, y) not in grid
+
+
+# print_scans(grid, set())
 total = set()
 last_seen = set()
 while True:
-    drops = deque([WaterDrop(500, 1, Direction.DOWN)])
+    drops = deque([(500, 0)])
     seen = set()
     while drops:
-        drop = drops.popleft()
-        if (drop.x, drop.y) in seen:
+        x, y = drops.popleft()
+        if (x, y) in seen:
             continue
-        if min_x < drop.x > max_x + 1 or min_y < drop.y > max_y:
+        if y > max_y:
             continue
-        seen.add((drop.x, drop.y))
-        move = drop.move(grid, seen)
-        drops += move
 
-    if seen == last_seen:
+        seen.add((x, y))
+
+        if can_move(grid, x, y + 1):
+            drops.appendleft((x, y + 1))
+        else:
+            if can_move(grid, x - 1, y):
+                drops.appendleft((x - 1, y))
+            if can_move(grid, x + 1, y):
+                drops.appendleft((x + 1, y))
+
+    if seen:
+        seen_y = sorted(set(map(lambda x: x[1], seen)))
+        seen_y = filter(lambda y: y < max_y, seen_y)
+        for y in seen_y:
+            level = filter(lambda x: x[1] == y, seen)
+            level = sorted(level, key=lambda x: x[0])
+            levels = []
+            if level:
+                clevel = []
+                prev_x = None
+                for x, y in level:
+                    if prev_x is None or prev_x + 1 == x:
+                        clevel.append((x, y))
+                        prev_x = x
+                    elif prev_x + 1 != x:
+                        levels.append(clevel)
+                        clevel = [(x, y)]
+                        prev_x = x
+                if clevel:
+                    levels.append(clevel)
+
+            for level in levels:
+                has_level_bellow = False
+                for (x, y) in level:
+                    if (x, y + 1) in seen:
+                        has_level_bellow = True
+                        break
+                if has_level_bellow:
+                    continue
+                for (x, y) in level:
+                    grid[(x, y)] = "@"
+
+    if last_seen == seen:
         break
 
     last_seen = seen
     total |= seen
     print(len(total))
 
-print_scans(grid, total)
-
 # zle too low 685
 # zle too high 175737
+# zle too high 75261
+print_scans(grid, total)
+total |= set([k for k, v in grid.items() if v == "@"])
+total = [(x, y) for (x, y) in total if min_y <= y <= max_y]
 print(len(total))
+# 31788
