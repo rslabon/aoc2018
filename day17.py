@@ -54,7 +54,6 @@ for line in lines:
 
     scans.append((x, y))
 
-print(min_x, max_x, min_y, max_y)
 
 grid = {}
 for scan in scans:
@@ -142,13 +141,11 @@ while True:
 
     last_seen = seen
     total |= seen
-    print(len(total))
+    # print(len(total))
 
-# zle too low 685
-# zle too high 175737
-# zle too high 75261
-print_scans(grid, total)
-total |= set([k for k, v in grid.items() if v == "@"])
+# print_scans(grid, total)
+reserves = set([k for k, v in grid.items() if v == "@"])
+total |= reserves
 total = [(x, y) for (x, y) in total if min_y <= y <= max_y]
-print(len(total))
-# 31788
+print("part1", len(total)) # 31788
+print("part2", len(reserves))
