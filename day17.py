@@ -148,4 +148,4 @@ reserves = set([k for k, v in grid.items() if v == "@"])
 total |= reserves
 total = [(x, y) for (x, y) in total if min_y <= y <= max_y]
 print("part1", len(total)) # 31788
-print("part2", len(reserves))
+print("part2", len(reserves)) # 25800
