@@ -21,8 +21,8 @@ y=13, x=498..504
 # y=7, x=495..505
 # """.strip().splitlines()
 
-with open("./resources/day17.txt") as f:
-    lines = f.read().strip().splitlines()
+# with open("./resources/day17.txt") as f:
+#     lines = f.read().strip().splitlines()
 
 scans = []
 water_source = (500, 0)
@@ -95,7 +95,7 @@ while True:
     drops = deque([(water_source[0], water_source[1], id)])
     seen = set()
     reserves = {id: set()}
-    before_reserves = set([k for k, v in grid.items() if v == "@"])
+    before_reserves = set([k for k, v in grid.items() if v == "~"])
     while drops:
         x, y, id = drops.popleft()
         if (x, y) in seen:
@@ -133,13 +133,13 @@ while True:
         if not moved:
             if id in reserves:
                 for p in reserves[id]:
-                    grid[p] = "@"
+                    grid[p] = "~"
 
-    after_reserves = set([k for k, v in grid.items() if v == "@"])
+    after_reserves = set([k for k, v in grid.items() if v == "~"])
     if before_reserves == after_reserves:
         break
 
-# print_scans(grid, total)
+print_scans(grid, total)
 total = [(x, y) for (x, y) in total if min_y <= y <= max_y]
 print("part1", len(total))  # 31788
 print("part2", len(after_reserves))  # 25800
