@@ -1,3 +1,4 @@
+import random
 from collections import deque
 
 lines = """
@@ -54,7 +55,6 @@ for line in lines:
 
     scans.append((x, y))
 
-
 grid = {}
 for scan in scans:
     x_range, y_range = scan
@@ -64,8 +64,8 @@ for scan in scans:
 
 
 def print_scans(grid, drops):
-    for y in range(min_y, max_y + 1):
-        for x in range(min_x, max_x + 1):
+    for y in range(min_y - 1, max_y + 1):
+        for x in range(min_x - 5, max_x + 5):
             if (x, y) == water_source:
                 print("+", end="")
             elif (x, y) in grid:
@@ -81,71 +81,67 @@ def can_move(grid, x, y):
     return (x, y) not in grid
 
 
-# print_scans(grid, set())
+def clear(reserves, id):
+    if id in reserves:
+        for p in reserves[id]:
+            if p in grid:
+                del grid[p]
+        del reserves[id]
+
+
 total = set()
-last_seen = set()
 while True:
-    drops = deque([(500, 0)])
+    id = random.random()
+    drops = deque([(500, 0, id)])
     seen = set()
+    reserves = {id: set()}
+    before_reserves = set([k for k, v in grid.items() if v == "@"])
     while drops:
-        x, y = drops.popleft()
+        x, y, id = drops.popleft()
         if (x, y) in seen:
             continue
         if y > max_y:
+            clear(reserves, id)
             continue
 
         seen.add((x, y))
+        total.add((x, y))
 
-        if can_move(grid, x, y + 1):
-            drops.appendleft((x, y + 1))
+        moved = False
+        if can_move(grid, x, y + 1) and (x, y + 1):
+            seen.remove((x, y))
+            if id in reserves:
+                seen -= reserves[id]
+            clear(reserves, id)
+            id = random.random()
+            if id not in reserves:
+                reserves[id] = {(x, y + 1)}
+            drops.appendleft((x, y + 1, id))
+            moved = True
         else:
-            if can_move(grid, x - 1, y):
-                drops.appendleft((x - 1, y))
-            if can_move(grid, x + 1, y):
-                drops.appendleft((x + 1, y))
+            if can_move(grid, x - 1, y) and (x - 1, y) not in seen:
+                if id in reserves:
+                    reserves[id].add((x - 1, y))
+                drops.appendleft((x - 1, y, id))
+                moved = True
+            if can_move(grid, x + 1, y) and (x + 1, y) not in seen:
+                if id in reserves:
+                    reserves[id].add((x + 1, y))
+                drops.appendleft((x + 1, y, id))
+                moved = True
 
-    if seen:
-        seen_y = sorted(set(map(lambda x: x[1], seen)))
-        seen_y = filter(lambda y: y < max_y, seen_y)
-        for y in seen_y:
-            level = filter(lambda x: x[1] == y, seen)
-            level = sorted(level, key=lambda x: x[0])
-            levels = []
-            if level:
-                clevel = []
-                prev_x = None
-                for x, y in level:
-                    if prev_x is None or prev_x + 1 == x:
-                        clevel.append((x, y))
-                        prev_x = x
-                    elif prev_x + 1 != x:
-                        levels.append(clevel)
-                        clevel = [(x, y)]
-                        prev_x = x
-                if clevel:
-                    levels.append(clevel)
+        if not moved:
+            if id in reserves:
+                for p in reserves[id]:
+                    grid[p] = "@"
 
-            for level in levels:
-                has_level_bellow = False
-                for (x, y) in level:
-                    if (x, y + 1) in seen:
-                        has_level_bellow = True
-                        break
-                if has_level_bellow:
-                    continue
-                for (x, y) in level:
-                    grid[(x, y)] = "@"
-
-    if last_seen == seen:
+    after_reserves = set([k for k, v in grid.items() if v == "@"])
+    if before_reserves == after_reserves:
         break
-
-    last_seen = seen
-    total |= seen
-    # print(len(total))
 
 # print_scans(grid, total)
 reserves = set([k for k, v in grid.items() if v == "@"])
 total |= reserves
 total = [(x, y) for (x, y) in total if min_y <= y <= max_y]
-print("part1", len(total)) # 31788
-print("part2", len(reserves)) # 25800
+print("part1", len(total))  # 31788
+print("part2", len(reserves))  # 25800
