@@ -92,7 +92,7 @@ def clear(reserves, id):
 total = set()
 while True:
     id = random.random()
-    drops = deque([(500, 0, id)])
+    drops = deque([(water_source[0], water_source[1], id)])
     seen = set()
     reserves = {id: set()}
     before_reserves = set([k for k, v in grid.items() if v == "@"])
