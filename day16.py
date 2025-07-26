@@ -70,10 +70,10 @@ Before: [3, 2, 1, 1]
 After:  [3, 2, 2, 1]
 """.split("\n\n")
 
-with open("./resources/day16.txt") as f:
-    block1, block2 = f.read().split("\n\n\n\n")
+# with open("./resources/day16.txt") as f:
+#     block1, block2 = f.read().split("\n\n\n\n")
 
-sample_blocks = block1.split("\n\n")
+# sample_blocks = block1.split("\n\n")
 
 samples = []
 for sample_block in sample_blocks:
@@ -135,5 +135,5 @@ def part2():
     print(registers[0])
 
 
-part1()
-part2()
+# part1()
+# part2()
