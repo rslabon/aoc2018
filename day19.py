@@ -79,7 +79,7 @@ def part2():
     target = 10551350  # value from 5 register
     num_of_devisors = 0
 
-    # number of divisors of given number
+    # sum of divisors of given number
     for i in range(1, int(target ** 0.5) + 1):
         if target % i == 0:
             num_of_devisors += i
