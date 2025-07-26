@@ -63,8 +63,9 @@ def execute(instructions, registers):
         if op_name == "eqrr":
             eqrr(registers, *args)
 
-        ip = registers[bound] + 1
         print(f"ip={ip} {before} {instruction} {registers}")
+
+        ip = registers[bound] + 1
 
 
 def part1():
@@ -74,10 +75,19 @@ def part1():
 
 
 def part2():
-    registers = [1, 0, 0, 0, 0, 0]
-    execute(instructions, registers)
-    print(registers[0])
+    # copilot help :-)
+    target = 10551350  # value from 5 register
+    num_of_devisors = 0
+
+    # number of divisors of given number
+    for i in range(1, int(target ** 0.5) + 1):
+        if target % i == 0:
+            num_of_devisors += i
+            if i != target // i:
+                num_of_devisors += target // i
+
+    print(num_of_devisors)
 
 
-# part1()
+part1()
 part2()
