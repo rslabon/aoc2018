@@ -161,9 +161,10 @@ def print_grid(grid):
 
 
 pattern = "ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))"
-with open("./resources/day20.txt") as f:
-    pattern = f.read().strip()
-    pattern = pattern[1:-1]
+pattern = "WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))"
+# with open("./resources/day20.txt") as f:
+#     pattern = f.read().strip()
+#     pattern = pattern[1:-1]
 
 root = Node()
 parse_node(list(pattern), root, None)
