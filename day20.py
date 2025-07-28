@@ -101,15 +101,15 @@ def parse_node(pattern, current, parent):
                 if end_index is None:
                     raise RuntimeError(f"Invalid pattern: {pattern}")
                 inner_pattern = pattern[1:end_index]
-                n = Node()
-                current.children.append(n)
+                inner_node = Node()
+                current.children.append(inner_node)
                 pattern = pattern[end_index + 1:]
-                parse_node(inner_pattern, n, current)
+                parse_node(inner_pattern, inner_node, current)
                 if pattern:
-                    tmp = Node()
+                    rest_node = Node()
                     tmp_parent = Node()
-                    tmp_parent.children.append(tmp)
-                    parse_node(pattern, tmp, tmp_parent)
+                    tmp_parent.children.append(rest_node)
+                    parse_node(pattern, rest_node, tmp_parent)
                     for leaf in current.leaf():
                         leaf.children += tmp_parent.children
                     pattern = []
@@ -168,6 +168,7 @@ with open("./resources/day20.txt") as f:
 root = Node()
 parse_node(list(pattern), root, None)
 print("PARSED!!!!")
+print(len(root.leaf()))
 grid = {(0, 0): "X"}
 fill_grid(grid, root)
 print_grid(grid)
