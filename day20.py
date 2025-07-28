@@ -103,16 +103,16 @@ def parse_node(pattern, current, parent):
                 inner_pattern = pattern[1:end_index]
                 n = Node()
                 current.children.append(n)
-                pattern = pattern[end_index + 1:]
+                rest_pattern = pattern[end_index + 1:]
                 parse_node(inner_pattern, n, current)
-                if pattern:
-                    tmp = Node()
+                if rest_pattern:
+                    rest_node = Node()
                     tmp_parent = Node()
-                    tmp_parent.children.append(tmp)
-                    parse_node(pattern, tmp, tmp_parent)
+                    tmp_parent.children.append(rest_node)
+                    parse_node(rest_pattern, rest_node, tmp_parent)
                     for leaf in current.leaf():
                         leaf.children += tmp_parent.children
-                    pattern = []
+                pattern = rest_pattern
             elif pattern and pattern[0] == ')':
                 pattern.pop(0)
         else:
