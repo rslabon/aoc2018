@@ -106,11 +106,13 @@ def parse_node(pattern, current, parent):
                 pattern = pattern[end_index + 1:]
                 parse_node(inner_pattern, n, current)
                 if pattern:
+                    tmp = Node()
+                    tmp_parent = Node()
+                    tmp_parent.children.append(tmp)
+                    parse_node(pattern, tmp, tmp_parent)
                     for leaf in current.leaf():
-                        ln = Node()
-                        leaf.children.append(ln)
-                        parse_node(pattern[:], ln, leaf)
-                pattern = []
+                        leaf.children += tmp_parent.children
+                    pattern = []
             elif pattern and pattern[0] == ')':
                 pattern.pop(0)
         else:
