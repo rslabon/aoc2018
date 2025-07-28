@@ -105,6 +105,9 @@ def parse_node(pattern, current, parent):
                 current.children.append(inner_node)
                 pattern = pattern[end_index + 1:]
                 parse_node(inner_pattern, inner_node, current)
+                for child in current.children:
+                    if not child.value and not child.children:
+                        current.children.remove(child)
                 if pattern:
                     rest_node = Node()
                     tmp_parent = Node()
@@ -116,6 +119,8 @@ def parse_node(pattern, current, parent):
             elif pattern and pattern[0] == ')':
                 pattern.pop(0)
         else:
+            if not current.value and not current.children:
+                parent.children.remove(current)
             for alternative_pattern in alternatives:
                 sibling = Node()
                 parent.children.append(sibling)
