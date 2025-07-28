@@ -101,18 +101,18 @@ def parse_node(pattern, current, parent):
                 if end_index is None:
                     raise RuntimeError(f"Invalid pattern: {pattern}")
                 inner_pattern = pattern[1:end_index]
-                branch_node = Node()
-                current.children.append(branch_node)
-                rest_pattern = pattern[end_index + 1:]
-                parse_node(inner_pattern, branch_node, current)
-                if rest_pattern:
-                    rest_node = Node()
+                n = Node()
+                current.children.append(n)
+                pattern = pattern[end_index + 1:]
+                parse_node(inner_pattern, n, current)
+                if pattern:
+                    tmp = Node()
                     tmp_parent = Node()
-                    tmp_parent.children.append(rest_node)
-                    parse_node(rest_pattern, rest_node, tmp_parent)
+                    tmp_parent.children.append(tmp)
+                    parse_node(pattern, tmp, tmp_parent)
                     for leaf in current.leaf():
                         leaf.children += tmp_parent.children
-                pattern = rest_pattern
+                    pattern = []
             elif pattern and pattern[0] == ')':
                 pattern.pop(0)
         else:
@@ -161,7 +161,6 @@ def print_grid(grid):
 
 
 pattern = "ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))"
-pattern = "WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))"
 with open("./resources/day20.txt") as f:
     pattern = f.read().strip()
     pattern = pattern[1:-1]
