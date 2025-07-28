@@ -150,6 +150,7 @@ def print_grid(grid):
     maxx = max(map(lambda k: k[0], grid.keys()))
     miny = min(map(lambda k: k[1], grid.keys()))
     maxy = max(map(lambda k: k[1], grid.keys()))
+    grid[(0,0)] = "X"
     for row in range(minx - 1, maxx + 2):
         for col in range(miny - 1, maxy + 2):
             if (col, row) not in grid:
@@ -160,15 +161,18 @@ def print_grid(grid):
     print()
 
 
+pattern = "ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN"
 pattern = "ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))"
-with open("./resources/day20.txt") as f:
-    pattern = f.read().strip()
-    pattern = pattern[1:-1]
+pattern = "WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))"
+pattern = "W(S|N)(EE|WW)(S|N)"
+# with open("./resources/day20.txt") as f:
+#     pattern = f.read().strip()
+#     pattern = pattern[1:-1]
 
 root = Node()
 parse_node(list(pattern), root, None)
 print("PARSED!!!!")
-print(len(root.leaf()))
 grid = {(0, 0): "X"}
 fill_grid(grid, root)
+print("FILLED!!!!")
 print_grid(grid)
