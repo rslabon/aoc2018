@@ -16,6 +16,16 @@ class Node:
     def __repr__(self):
         return f"Node({self.value})"
 
+def leaf(node, prev = ""):
+    if len(node.children) == 0:
+        return [prev + node.value]
+
+    result = []
+    for child in node.children:
+        result += leaf(child, prev + node.value)
+
+    return result
+
 
 def find_closing_index(pattern):
     if not pattern:
@@ -53,42 +63,6 @@ def split_pattern(pattern):
     return splits
 
 
-# def xxx():
-#     lines = """
-#     ESSWWN E
-#     ESSWWN NNENN EESS WNSE SSS
-#     ESSWWN NNENN EESS SSS
-#     ESSWWN NNENN WWWSSSSE SW
-#     ESSWWN NNENN WWWSSSSE NNNE
-#     """.strip().splitlines()
-#
-#     grid = {(0, 0): "X"}
-#     for line in lines:
-#         x, y = 0, 0
-#         for c in line:
-#             if c == "E":
-#                 grid[(x + 1, y)] = "|"
-#                 grid[(x + 2, y)] = "."
-#                 x += 2
-#             elif c == "W":
-#                 grid[(x - 1, y)] = "|"
-#                 grid[(x - 2, y)] = "."
-#                 x -= 2
-#             elif c == "N":
-#                 grid[(x, y - 1)] = "-"
-#                 grid[(x, y - 2)] = "."
-#                 y -= 2
-#             elif c == "S":
-#                 grid[(x, y + 1)] = "-"
-#                 grid[(x, y + 2)] = "."
-#                 y += 2
-#
-#         grid[(0, 0)] = "X"
-#         print_grid(grid)
-#
-#     return grid
-
-
 def parse_node(pattern, current, parent):
     while pattern:
         alternatives = split_pattern(pattern)
@@ -101,13 +75,8 @@ def parse_node(pattern, current, parent):
                 if end_index is None:
                     raise RuntimeError(f"Invalid pattern: {pattern}")
                 inner_pattern = pattern[1:end_index]
-                inner_node = Node()
-                current.children.append(inner_node)
                 pattern = pattern[end_index + 1:]
-                parse_node(inner_pattern, inner_node, current)
-                for child in current.children:
-                    if not child.value and not child.children:
-                        current.children.remove(child)
+                parse_node(inner_pattern, None, current)
                 if pattern:
                     rest_node = Node()
                     tmp_parent = Node()
@@ -116,11 +85,10 @@ def parse_node(pattern, current, parent):
                     for leaf in current.leaf():
                         leaf.children += tmp_parent.children
                     pattern = []
-            elif pattern and pattern[0] == ')':
-                pattern.pop(0)
-        else:
-            if not current.value and not current.children:
+            if not current.value and current.children:
                 parent.children.remove(current)
+                parent.children += current.children
+        else:
             for alternative_pattern in alternatives:
                 sibling = Node()
                 parent.children.append(sibling)
@@ -169,15 +137,16 @@ def print_grid(grid):
 pattern = "ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN"
 pattern = "ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))"
 pattern = "WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))"
-pattern = "W(S|N)(EE|WW)(S|N)"
-# with open("./resources/day20.txt") as f:
-#     pattern = f.read().strip()
-#     pattern = pattern[1:-1]
+# pattern = "W(S|N)(EE|WW)(S|N)"
+with open("./resources/day20.txt") as f:
+    pattern = f.read().strip()
+    pattern = pattern[1:-1]
 
 root = Node()
 parse_node(list(pattern), root, None)
 print("PARSED!!!!")
-grid = {(0, 0): "X"}
-fill_grid(grid, root)
-print("FILLED!!!!")
-print_grid(grid)
+print(leaf(root))
+# grid = {(0, 0): "X"}
+# fill_grid(grid, root)
+# print("FILLED!!!!")
+# print_grid(grid)
