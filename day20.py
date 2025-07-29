@@ -230,5 +230,5 @@ def part2():
     # print_grid(grid)
 
 
-# part1()
+part1()
 part2()
