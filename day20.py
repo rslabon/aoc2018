@@ -141,7 +141,7 @@ def manhatan_distance(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
-def find_furthest_with_max_doors(grid):
+def create_stats(grid):
     q = deque([(0, 0, set(), 0, 0)])
     stats = dict()
     while q:
@@ -171,8 +171,19 @@ def find_furthest_with_max_doors(grid):
                 room = 1
             q.append((xx, yy, set(seen), doors + door, rooms + room))
 
+    return stats
+
+
+def find_furthest_with_max_doors(grid):
+    stats = create_stats(grid)
     sorted_stats = sorted(map(lambda x: (x[1][-1], manhatan_distance((0, 0), x[0])), stats.items()), reverse=True)
     return sorted_stats[0][0]
+
+
+def count_rooms_with_shortest_path_upto(grid, at_least_doors):
+    stats = create_stats(grid)
+    rooms_with_at_least_doors = list(filter(lambda x: x[-1] >= at_least_doors, stats.values()))
+    return len(rooms_with_at_least_doors)
 
 
 def print_grid(grid):
@@ -210,4 +221,14 @@ def part1():
     # print_grid(grid)
 
 
-part1()
+def part2():
+    root = Node()
+    parse_node(list(pattern), root, None)
+    grid = {(0, 0): "X"}
+    fill_grid(grid, root)
+    print(count_rooms_with_shortest_path_upto(grid, 1000))
+    # print_grid(grid)
+
+
+# part1()
+part2()
