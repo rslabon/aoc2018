@@ -1,7 +1,11 @@
+from collections import deque
+
+
 class Node:
     def __init__(self):
         self.value = ""
         self.children = []
+        self.leafs = []
 
     def leaf(self):
         if len(self.children) == 0:
@@ -16,13 +20,24 @@ class Node:
     def __repr__(self):
         return f"Node({self.value})"
 
-def leaf(node, prev = ""):
+
+def leaf(node, seen=set()):
+    if node.leafs:
+        return node.leafs
+
+    if node in seen:
+        return []
+    seen.add(node)
+
     if len(node.children) == 0:
-        return [prev + node.value]
+        node.leafs = [node]
+        return [node]
 
     result = []
     for child in node.children:
-        result += leaf(child, prev + node.value)
+        result += leaf(child, seen)
+
+    node.leafs = result
 
     return result
 
@@ -96,7 +111,11 @@ def parse_node(pattern, current, parent):
             return
 
 
-def fill_grid(grid, node, x=0, y=0):
+def fill_grid(grid, node, x=0, y=0, seen=set()):
+    if node in seen:
+        return
+    seen.add(node)
+
     for d in node.value:
         if d == "E":
             grid[(x + 1, y)] = "|"
@@ -118,35 +137,77 @@ def fill_grid(grid, node, x=0, y=0):
         fill_grid(grid, child, x, y)
 
 
+def manhatan_distance(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+def find_furthest_with_max_doors(grid):
+    q = deque([(0, 0, set(), 0, 0)])
+    stats = dict()
+    while q:
+        x, y, seen, doors, rooms = q.popleft()
+        if (x, y) not in stats and grid[(x, y)] == ".":
+            stats[(x, y)] = ((x, y), rooms, doors)
+        elif (x, y) in stats and doors > stats[(x, y)][-1]:
+            stats[(x, y)] = ((x, y), rooms, doors)
+
+        if (x, y) in seen:
+            continue
+        seen.add((x, y))
+        if (x, y) not in grid:
+            continue
+        for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            xx = x + dx
+            yy = y + dy
+            if (xx, yy) not in grid:
+                continue
+            if (xx, yy) in seen:
+                continue
+            if grid[(xx, yy)] in ["|", "-"]:
+                door = 1
+                room = 0
+            else:
+                door = 0
+                room = 1
+            q.append((xx, yy, set(seen), doors + door, rooms + room))
+
+    sorted_stats = sorted(map(lambda x: (x[1][-1], manhatan_distance((0, 0), x[0])), stats.items()), reverse=True)
+    return sorted_stats[0][0]
+
+
 def print_grid(grid):
     minx = min(map(lambda k: k[0], grid.keys()))
     maxx = max(map(lambda k: k[0], grid.keys()))
     miny = min(map(lambda k: k[1], grid.keys()))
     maxy = max(map(lambda k: k[1], grid.keys()))
-    grid[(0,0)] = "X"
-    for row in range(minx - 1, maxx + 2):
-        for col in range(miny - 1, maxy + 2):
-            if (col, row) not in grid:
+    grid[(0, 0)] = "X"
+    for y in range(miny - 1, maxy + 2):
+        for x in range(minx - 1, maxx + 2):
+            if (x, y) not in grid:
                 print("#", end="")
             else:
-                print(grid[(col, row)], end="")
+                print(grid[(x, y)], end="")
         print()
     print()
 
 
-pattern = "ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN"
-pattern = "ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))"
-pattern = "WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))"
+# pattern = "ENWWW(NEEE|SSE(EE|N))"
+# pattern = "ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN"
+# pattern = "ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))"
+# pattern = "WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))"
 # pattern = "W(S|N)(EE|WW)(S|N)"
 with open("./resources/day20.txt") as f:
     pattern = f.read().strip()
     pattern = pattern[1:-1]
 
-root = Node()
-parse_node(list(pattern), root, None)
-print("PARSED!!!!")
-print(leaf(root))
-# grid = {(0, 0): "X"}
-# fill_grid(grid, root)
-# print("FILLED!!!!")
-# print_grid(grid)
+
+def part1():
+    root = Node()
+    parse_node(list(pattern), root, None)
+    grid = {(0, 0): "X"}
+    fill_grid(grid, root)
+    print(find_furthest_with_max_doors(grid))
+    # print_grid(grid)
+
+
+part1()
