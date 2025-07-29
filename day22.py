@@ -165,7 +165,7 @@ def part2():
             print_map(dict(map(lambda x: (x[0], x[2]), path)))
             continue
 
-        for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+        for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
             xx = x + dx
             yy = y + dy
             if (xx, yy) in seen:
