@@ -1,5 +1,6 @@
 import functools
 import heapq
+from collections import defaultdict
 from enum import Enum
 
 
@@ -127,7 +128,7 @@ def part1():
 def part2():
     maxx = target[0] * 5
     maxy = target[1] * 2
-    steps = dict()
+    steps = defaultdict(Step)
 
     for y in range(maxy):
         for x in range(maxx):
@@ -142,19 +143,13 @@ def part2():
                 from_possible_gear = possible_gear[from_type]
 
                 for gear in from_possible_gear:
-                    from_step = steps.get((x, y, gear), Step())
-                    steps[(x, y, gear)] = from_step
+                    from_step = steps[(x, y, gear)]
                     for other_gear in from_possible_gear - {gear}:
-                        change_gear = steps.get((to_x, to_y, other_gear), Step())
-                        steps[(to_x, to_y, other_gear)] = change_gear
                         from_step.minutes[(x, y, other_gear)] = 7
 
                 for gear in from_possible_gear:
                     if gear in possible_gear[to_type]:
-                        to_step = steps.get((to_x, to_y, gear), Step())
-                        steps[(to_x, to_y, gear)] = to_step
-                        from_step = steps[(x, y, gear)]
-                        from_step.minutes[(to_x, to_y, gear)] = 1
+                        steps[(x, y, gear)].minutes[(to_x, to_y, gear)] = 1
 
     q = []
     heapq.heapify(q)
