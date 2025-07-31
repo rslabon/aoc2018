@@ -162,6 +162,7 @@ def part2():
                         if (to_x, to_y) == target:
                             if to_gear != Gear.Torch:
                                 to_step_min += 7
+                                to_gear = Gear.Torch
 
                         to_step = steps.get((to_x, to_y, to_gear), Step())
                         steps[(to_x, to_y, to_gear)] = to_step
