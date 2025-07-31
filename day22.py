@@ -120,18 +120,14 @@ def risk():
     return total
 
 
-def manhatan_distance(current, destination):
-    return abs(current[0] - destination[0]) + abs(current[1] - destination[1])
-
-
 def part1():
     print(risk())
 
 
 def part2():
-    maxx = target[0] * 3
-    maxy = target[1] * 3
-    steps = {(0, 0, Gear.Torch): Step()}
+    maxx = target[0] * 5
+    maxy = target[1] * 2
+    steps = dict()
 
     for from_y in range(maxy):
         for from_x in range(maxx):
@@ -142,37 +138,30 @@ def part2():
                     continue
                 from_type = type(from_x, from_y)
                 to_type = type(to_x, to_y)
-                common_gear = possible_gear[from_type] & possible_gear[to_type]
-                if not common_gear:
-                    continue
 
-                if (from_x, from_y) == (0, 0):
-                    from_possible_gear = [Gear.Torch]
-                else:
-                    from_possible_gear = possible_gear[from_type]
+                from_possible_gear = possible_gear[from_type]
 
                 for from_gear in from_possible_gear:
                     from_step = steps.get((from_x, from_y, from_gear), Step())
                     steps[(from_x, from_y, from_gear)] = from_step
-                    for to_gear in common_gear:
-                        if to_gear == from_gear:
-                            to_step_min = 1
-                        else:
-                            to_step_min = 7 + 1
-                        if (to_x, to_y) == target:
-                            if to_gear != Gear.Torch:
-                                to_step_min += 7
-                                to_gear = Gear.Torch
+                    for other_gear in from_possible_gear - {from_gear}:
+                        change_step = steps.get((to_x, to_y, other_gear), Step())
+                        steps[(to_x, to_y, other_gear)] = change_step
+                        from_step.adj[(from_x, from_y, other_gear)] = 7
 
-                        to_step = steps.get((to_x, to_y, to_gear), Step())
-                        steps[(to_x, to_y, to_gear)] = to_step
-                        from_step.adj[(to_x, to_y, to_gear)] = to_step_min
+                for from_gear in from_possible_gear:
+                    if from_gear in possible_gear[to_type]:
+                        to_step = steps.get((to_x, to_y, from_gear), Step())
+                        steps[(to_x, to_y, from_gear)] = to_step
+                        from_step = steps[(from_x, from_y, from_gear)]
+                        from_step.adj[(to_x, to_y, from_gear)] = 1
 
     q = []
     heapq.heapify(q)
     heapq.heappush(q, (0, 0, 0, Gear.Torch))
     cost = {(0, 0, Gear.Torch): 0}
     min_minutes = float("inf")
+    prev = {(0, 0, Gear.Torch): None}
     seen = set()
 
     while q:
@@ -181,7 +170,7 @@ def part2():
             continue
         seen.add((from_x, from_y, gear))
 
-        if (from_x, from_y) == target:
+        if (from_x, from_y) == target and gear == Gear.Torch:
             took_minutes = cost[(from_x, from_y, gear)]
             min_minutes = min(min_minutes, took_minutes)
             break
@@ -191,11 +180,11 @@ def part2():
             new_cost = cost[(from_x, from_y, gear)] + step.adj[(nx, ny, ng)]
             if (nx, ny, ng) not in cost or new_cost < cost[(nx, ny, ng)]:
                 cost[(nx, ny, ng)] = new_cost
+                prev[(nx, ny, ng)] = (from_x, from_y, gear)
                 heapq.heappush(q, (new_cost, nx, ny, ng))
 
     print(min_minutes)
 
 
-# part1()
+part1()
 part2()
-# too high 1035
