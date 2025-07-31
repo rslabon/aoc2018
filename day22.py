@@ -155,7 +155,7 @@ def part2():
     heapq.heapify(q)
     heapq.heappush(q, (0, 0, 0, Gear.Torch))
     cost = {(0, 0, Gear.Torch): 0}
-    min_minutes = float("inf")
+    took_minutes = float("inf")
     prev = {(0, 0, Gear.Torch): None}
     seen = set()
 
@@ -167,7 +167,6 @@ def part2():
 
         if (x, y) == target and gear == Gear.Torch:
             took_minutes = cost[(x, y, gear)]
-            min_minutes = min(min_minutes, took_minutes)
             break
 
         step = steps[(x, y, gear)]
@@ -178,7 +177,7 @@ def part2():
                 prev[(next_x, next_y, next_gear)] = (x, y, gear)
                 heapq.heappush(q, (new_cost, next_x, next_y, next_gear))
 
-    print(min_minutes)
+    print(took_minutes)
 
 
 part1()
