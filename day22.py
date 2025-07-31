@@ -159,6 +159,10 @@ def part2():
                             to_step_min = 1
                         else:
                             to_step_min = 7 + 1
+                        if (to_x, to_y) == target:
+                            if to_gear != Gear.Torch:
+                                to_step_min += 7
+
                         to_step = steps.get((to_x, to_y, to_gear), Step())
                         steps[(to_x, to_y, to_gear)] = to_step
                         from_step.adj[(to_x, to_y, to_gear)] = to_step_min
@@ -177,7 +181,7 @@ def part2():
         seen.add((from_x, from_y, gear))
 
         if (from_x, from_y) == target:
-            took_minutes = cost[(from_x, from_y, gear)] + (0 if gear == Gear.Torch else 7)
+            took_minutes = cost[(from_x, from_y, gear)]
             min_minutes = min(min_minutes, took_minutes)
             continue
 
