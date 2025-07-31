@@ -145,8 +145,8 @@ def part2():
                     from_step = steps.get((from_x, from_y, from_gear), Step())
                     steps[(from_x, from_y, from_gear)] = from_step
                     for other_gear in from_possible_gear - {from_gear}:
-                        change_step = steps.get((to_x, to_y, other_gear), Step())
-                        steps[(to_x, to_y, other_gear)] = change_step
+                        change_gear = steps.get((to_x, to_y, other_gear), Step())
+                        steps[(to_x, to_y, other_gear)] = change_gear
                         from_step.adj[(from_x, from_y, other_gear)] = 7
 
                 for from_gear in from_possible_gear:
