@@ -129,41 +129,39 @@ def part1():
 
 
 def part2():
-    type_cache = dict()
-    maxx = target[0] * 2
-    maxy = target[1] * 2
-
-    for y in range(maxy):
-        for x in range(maxx):
-            type_cache[(x, y)] = type(x, y)
-
+    maxx = target[0] * 3
+    maxy = target[1] * 3
     steps = {(0, 0, Gear.Torch): Step()}
-    for y in range(maxy):
-        for x in range(maxx):
+
+    for from_y in range(maxy):
+        for from_x in range(maxx):
             for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                xx = x + dx
-                yy = y + dy
-                if xx < 0 or yy < 0 or xx >= maxx or yy >= maxy:
+                to_x = from_x + dx
+                to_y = from_y + dy
+                if to_x < 0 or to_y < 0 or to_x >= maxx or to_y >= maxy:
                     continue
-                from_type = type_cache[(x, y)]
-                to_type = type_cache[(xx, yy)]
+                from_type = type(from_x, from_y)
+                to_type = type(to_x, to_y)
                 common_gear = possible_gear[from_type] & possible_gear[to_type]
                 if not common_gear:
                     continue
 
-                if (x, y) == (0, 0):
+                if (from_x, from_y) == (0, 0):
                     from_possible_gear = [Gear.Torch]
                 else:
                     from_possible_gear = possible_gear[from_type]
 
                 for from_gear in from_possible_gear:
-                    from_step = steps.get((x, y, from_gear), Step())
-                    steps[(x, y, from_gear)] = from_step
+                    from_step = steps.get((from_x, from_y, from_gear), Step())
+                    steps[(from_x, from_y, from_gear)] = from_step
                     for to_gear in common_gear:
-                        to_step_min = 1 if to_gear == from_gear else 7 + 1
-                        to_step = steps.get((xx, yy, to_gear), Step())
-                        steps[(xx, yy, to_gear)] = to_step
-                        from_step.adj[(xx, yy, to_gear)] = to_step_min
+                        if to_gear == from_gear:
+                            to_step_min = 1
+                        else:
+                            to_step_min = 7 + 1
+                        to_step = steps.get((to_x, to_y, to_gear), Step())
+                        steps[(to_x, to_y, to_gear)] = to_step
+                        from_step.adj[(to_x, to_y, to_gear)] = to_step_min
 
     q = []
     heapq.heapify(q)
@@ -173,25 +171,24 @@ def part2():
     seen = set()
 
     while q:
-        _, x, y, gear = heapq.heappop(q)
-        if (x, y, gear) in seen:
+        _, from_x, from_y, gear = heapq.heappop(q)
+        if (from_x, from_y, gear) in seen:
             continue
-        seen.add((x, y, gear))
+        seen.add((from_x, from_y, gear))
 
-        if (x, y) == target:
-            took_minutes = cost[(x, y, gear)] + (0 if gear == Gear.Torch else 7)
+        if (from_x, from_y) == target:
+            took_minutes = cost[(from_x, from_y, gear)] + (0 if gear == Gear.Torch else 7)
             min_minutes = min(min_minutes, took_minutes)
             continue
 
-        step = steps[(x, y, gear)]
+        step = steps[(from_x, from_y, gear)]
         for nx, ny, ng in step.adj.keys():
-            new_cost = cost[(x, y, gear)] + step.adj[(nx, ny, ng)]
+            new_cost = cost[(from_x, from_y, gear)] + step.adj[(nx, ny, ng)]
             if (nx, ny, ng) not in cost or new_cost < cost[(nx, ny, ng)]:
                 cost[(nx, ny, ng)] = new_cost
                 heapq.heappush(q, (new_cost, nx, ny, ng))
 
     print(min_minutes)
-
 
 
 # part1()
