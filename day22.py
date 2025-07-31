@@ -129,32 +129,32 @@ def part2():
     maxy = target[1] * 2
     steps = dict()
 
-    for from_y in range(maxy):
-        for from_x in range(maxx):
+    for y in range(maxy):
+        for x in range(maxx):
             for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                to_x = from_x + dx
-                to_y = from_y + dy
+                to_x = x + dx
+                to_y = y + dy
                 if to_x < 0 or to_y < 0 or to_x >= maxx or to_y >= maxy:
                     continue
-                from_type = type(from_x, from_y)
+                from_type = type(x, y)
                 to_type = type(to_x, to_y)
 
                 from_possible_gear = possible_gear[from_type]
 
-                for from_gear in from_possible_gear:
-                    from_step = steps.get((from_x, from_y, from_gear), Step())
-                    steps[(from_x, from_y, from_gear)] = from_step
-                    for other_gear in from_possible_gear - {from_gear}:
+                for gear in from_possible_gear:
+                    from_step = steps.get((x, y, gear), Step())
+                    steps[(x, y, gear)] = from_step
+                    for other_gear in from_possible_gear - {gear}:
                         change_gear = steps.get((to_x, to_y, other_gear), Step())
                         steps[(to_x, to_y, other_gear)] = change_gear
-                        from_step.minutes[(from_x, from_y, other_gear)] = 7
+                        from_step.minutes[(x, y, other_gear)] = 7
 
-                for from_gear in from_possible_gear:
-                    if from_gear in possible_gear[to_type]:
-                        to_step = steps.get((to_x, to_y, from_gear), Step())
-                        steps[(to_x, to_y, from_gear)] = to_step
-                        from_step = steps[(from_x, from_y, from_gear)]
-                        from_step.minutes[(to_x, to_y, from_gear)] = 1
+                for gear in from_possible_gear:
+                    if gear in possible_gear[to_type]:
+                        to_step = steps.get((to_x, to_y, gear), Step())
+                        steps[(to_x, to_y, gear)] = to_step
+                        from_step = steps[(x, y, gear)]
+                        from_step.minutes[(to_x, to_y, gear)] = 1
 
     q = []
     heapq.heapify(q)
@@ -165,23 +165,23 @@ def part2():
     seen = set()
 
     while q:
-        _, from_x, from_y, gear = heapq.heappop(q)
-        if (from_x, from_y, gear) in seen:
+        _, x, y, gear = heapq.heappop(q)
+        if (x, y, gear) in seen:
             continue
-        seen.add((from_x, from_y, gear))
+        seen.add((x, y, gear))
 
-        if (from_x, from_y) == target and gear == Gear.Torch:
-            took_minutes = cost[(from_x, from_y, gear)]
+        if (x, y) == target and gear == Gear.Torch:
+            took_minutes = cost[(x, y, gear)]
             min_minutes = min(min_minutes, took_minutes)
             break
 
-        step = steps[(from_x, from_y, gear)]
-        for nx, ny, ng in step.minutes.keys():
-            new_cost = cost[(from_x, from_y, gear)] + step.minutes[(nx, ny, ng)]
-            if (nx, ny, ng) not in cost or new_cost < cost[(nx, ny, ng)]:
-                cost[(nx, ny, ng)] = new_cost
-                prev[(nx, ny, ng)] = (from_x, from_y, gear)
-                heapq.heappush(q, (new_cost, nx, ny, ng))
+        step = steps[(x, y, gear)]
+        for next_x, next_y, next_gear in step.minutes.keys():
+            new_cost = cost[(x, y, gear)] + step.minutes[(next_x, next_y, next_gear)]
+            if (next_x, next_y, next_gear) not in cost or new_cost < cost[(next_x, next_y, next_gear)]:
+                cost[(next_x, next_y, next_gear)] = new_cost
+                prev[(next_x, next_y, next_gear)] = (x, y, gear)
+                heapq.heappush(q, (new_cost, next_x, next_y, next_gear))
 
     print(min_minutes)
 
