@@ -184,7 +184,7 @@ def part2():
         if (from_x, from_y) == target:
             took_minutes = cost[(from_x, from_y, gear)]
             min_minutes = min(min_minutes, took_minutes)
-            continue
+            break
 
         step = steps[(from_x, from_y, gear)]
         for nx, ny, ng in step.adj.keys():
