@@ -43,7 +43,7 @@ possible_gear = {
 
 class Step:
     def __init__(self):
-        self.adj = dict()
+        self.minutes = dict()
 
 
 depth = 8112
@@ -147,14 +147,14 @@ def part2():
                     for other_gear in from_possible_gear - {from_gear}:
                         change_gear = steps.get((to_x, to_y, other_gear), Step())
                         steps[(to_x, to_y, other_gear)] = change_gear
-                        from_step.adj[(from_x, from_y, other_gear)] = 7
+                        from_step.minutes[(from_x, from_y, other_gear)] = 7
 
                 for from_gear in from_possible_gear:
                     if from_gear in possible_gear[to_type]:
                         to_step = steps.get((to_x, to_y, from_gear), Step())
                         steps[(to_x, to_y, from_gear)] = to_step
                         from_step = steps[(from_x, from_y, from_gear)]
-                        from_step.adj[(to_x, to_y, from_gear)] = 1
+                        from_step.minutes[(to_x, to_y, from_gear)] = 1
 
     q = []
     heapq.heapify(q)
@@ -176,8 +176,8 @@ def part2():
             break
 
         step = steps[(from_x, from_y, gear)]
-        for nx, ny, ng in step.adj.keys():
-            new_cost = cost[(from_x, from_y, gear)] + step.adj[(nx, ny, ng)]
+        for nx, ny, ng in step.minutes.keys():
+            new_cost = cost[(from_x, from_y, gear)] + step.minutes[(nx, ny, ng)]
             if (nx, ny, ng) not in cost or new_cost < cost[(nx, ny, ng)]:
                 cost[(nx, ny, ng)] = new_cost
                 prev[(nx, ny, ng)] = (from_x, from_y, gear)
