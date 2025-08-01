@@ -65,6 +65,15 @@ def number_in_range(pos):
     return in_range
 
 
+def count_in_range(nanobots, x, y, z):
+    in_range = 0
+    for nano in nanobots:
+        distance = manhatan_distance(nano, (x, y, z))
+        if distance <= nano[3]:
+            in_range += 1
+    return in_range
+
+
 def part1():
     largest_signal_radius = sorted(nanobots, key=lambda x: x[3], reverse=True)[0]
     in_range = 0
@@ -75,47 +84,46 @@ def part1():
     print(in_range)
 
 
-def xxx(nanobots, x, y, z, r):
-    in_range = 0
-    for other_nanobot in nanobots:
-        distance = manhatan_distance(other_nanobot, (x, y, z))
-        if distance <= other_nanobot[3] + r:
-            in_range += 1
-    return in_range
+def part2():
+    xs = list(map(lambda x: x[0], nanobots))
+    ys = list(map(lambda x: x[1], nanobots))
+    zs = list(map(lambda x: x[2], nanobots))
+    minx = min(xs)
+    maxx = max(xs)
+    miny = min(ys)
+    maxy = max(ys)
+    minz = min(zs)
+    maxz = max(zs)
+    max_range = max(maxx - minx, maxy - miny, maxz - minz)
+    step = 1
+    while step < max_range:
+        step *= 2
+
+    max_in_range = float('-inf')
+    best_position = None
+    best_distance = None
+
+    while step > 1:
+        for x in range(minx, maxx + 1, step):
+            for y in range(miny, maxy + 1, step):
+                for z in range(minz, maxz + 1, step):
+                    in_range = count_in_range(nanobots, x, y, z)
+                    distance = manhatan_distance((x, y, z), (0, 0, 0))
+                    if in_range > max_in_range or (in_range == max_in_range and distance < best_distance):
+                        max_in_range = in_range
+                        best_position = (x, y, z)
+                        best_distance = distance
+
+        minx = best_position[0] - step
+        maxx = best_position[0] + step
+        miny = best_position[1] - step
+        maxy = best_position[1] + step
+        minz = best_position[2] - step
+        maxz = best_position[2] + step
+        step //= 2
+
+    print(best_distance)
 
 
-def part2(nanobots):
-    nanobots = set(nanobots)
-    ranges = dict()
-    for nanobot in nanobots:
-        in_range = 0
-        for other_nanobot in nanobots - {nanobot}:
-            distance = manhatan_distance(other_nanobot, nanobot)
-            if distance <= other_nanobot[3] + nanobot[3]:
-                in_range += 1
-        ranges[nanobot] = in_range
-
-    nano_in_ranges, _, (x, y, z, r) = list(sorted(map(lambda x: (-x[1], x[0][-1], x[0]), ranges.items())))[0]
-    nano_in_ranges = - nano_in_ranges
-    nanobots -= {(x, y, z, r)}
-    rr = r
-    while True:
-        k = xxx(nanobots, x, y, z, r)
-        if k < nano_in_ranges:
-            r += 1
-            break
-        r -= 1
-    print(rr, r)
-
-# print(xranges)
-# print(intersection(xranges))
-#
-# print(yranges)
-# print(intersection(yranges))
-#
-# print(zranges)
-# print(intersection(zranges))
-
-
-# part1()
-part2(nanobots)
+part1()
+part2()
