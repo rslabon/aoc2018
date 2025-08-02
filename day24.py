@@ -1,4 +1,5 @@
 import re
+import sys
 
 lines = """    
 Immune System:
@@ -114,17 +115,41 @@ def fight(groups):
                 selected.add(target)
                 selection[group] = target
 
+        if not selection:
+            return -1
+
+        attack = False
         for group in sorted(selection.keys(), key=lambda g: -g.initiative):
             enemy_group = selection[group]
             damage = group.compute_attack_damage(enemy_group)
             if group.units <= 0 or enemy_group.units <= 0:
                 continue
-            enemy_group.receive_damage(damage)
-            if enemy_group.is_dead():
-                groups.remove(enemy_group)
+            killed = enemy_group.receive_damage(damage)
+            if killed > 0:
+                attack = True
 
-        if len(set(map(lambda g: g.army, groups))) == 1:
+        if not attack:
+            return -1
+
+        dead_groups = [group for group in groups if group.is_dead()]
+        for group in dead_groups:
+            groups.remove(group)
+
+        armies = set(map(lambda g: g.army, groups))
+        if len(armies) == 1:
             return sum([g.units for g in groups])
+
+
+def left_units_after_immune_won(boost):
+    groups = parse_groups()
+    for group in groups:
+        if "Immune" in group.army:
+            group.attack_damage += boost
+    left = fight(groups)
+    if left > 0 and "Immune" in groups.pop().army:
+        return left
+
+    return 0
 
 
 def part1():
@@ -132,4 +157,13 @@ def part1():
     print(fight(groups))
 
 
-part1()
+def part2():
+    for i in range(1, sys.maxsize):
+        left = left_units_after_immune_won(i)
+        if left > 0:
+            print(left)
+            break
+
+
+# part1()
+part2()
