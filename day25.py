@@ -44,7 +44,7 @@ while i < len(points):
     remain = [c for c in constellations if i not in c]
     merge = set()
     for v in to_merge:
-        merge |= set(v)
+        merge |= v
     constellations = []
     if merge:
         constellations.append(merge)
