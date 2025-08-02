@@ -158,11 +158,24 @@ def part1():
 
 
 def part2():
-    for i in range(1, sys.maxsize):
-        left = left_units_after_immune_won(i)
-        if left > 0:
+    step = 10000
+    start = 1
+    end = sys.maxsize
+    left = None
+    while True:
+        for i in range(start, end, step):
+            left = left_units_after_immune_won(i)
+            if left > 0:
+                end = i
+                break
+            else:
+                start = i
+
+        if step == 1:
             print(left)
             break
+
+        step //= 10
 
 
 # part1()
